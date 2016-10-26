@@ -14,6 +14,11 @@ int main(int argCount, char** argVal) {
         return 0;
     }
 
+    signal(SIGINT, [](int s) {
+		printf("SIGINT got");
+		sigintGot = true;
+	});
+
     try {
         TgLongPoll longPoll(initBot(string(argVal[1])));
         printf("Polling...\n");
