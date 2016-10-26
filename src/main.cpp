@@ -20,7 +20,7 @@ int main(int argCount, char** argVal) {
 	});
 
     try {
-        TgLongPoll longPoll(initBot(string(argVal[1])));
+        TgLongPoll longPoll(initBot(string(*(argVal + 1))));
         printf("Polling...\n");
         while (!sigintGot) {
             longPoll.start();
