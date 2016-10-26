@@ -42,5 +42,13 @@ Bot initBot(string botToken) {
         );
     });
 
+    bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
+        printf("User wrote %s\n", message->text.c_str());
+        if (StringTools::startsWith(message->text, "/start")) {
+            return;
+        }
+        bot.getApi().sendMessage(message->chat->id, "Your message is: " + message->text);
+    });
+
     return bot;
 }
