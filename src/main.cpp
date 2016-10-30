@@ -9,7 +9,7 @@ using namespace claptp;
 
 bool sigintGot = false;
 
-string botId("anon: ");
+string* botId = NULL;
 
 
 void initBot(Bot&);
@@ -26,7 +26,7 @@ int main(int argCount, char** argVal) {
 	});
 
     if (argCount > 2) {
-        botId = string(argVal[2]).append(": ");
+        botId = &string(argVal[2]).append(": ");
     }
 
     try {
@@ -53,18 +53,20 @@ void initBot(Bot& bot) {
     bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                string(botId).append(
+                (botId != NULL ? string(*botId) : string())
+                        .append(
                         "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down."
-                )
+                        )
         );
     });
 
     bot.getEvents().onCommand("enough", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                string(botId).append(
+                (botId != NULL ? string(*botId) : string())
+                        .append(
                         "Oh my God, I'm leaking! I think I'm leaking! Ahhhh, I'm leaking! There's oil everywhere!"
-                )
+                        )
         );
         sigintGot = true;
     });
@@ -77,7 +79,8 @@ void initBot(Bot& bot) {
          printf("User wrote %s\n", echoMsg.c_str());
          bot.getApi().sendMessage(
                  message->chat->id,
-                 string(botId).append("You hear an echo: ").append(echoMsg)
+                 (botId != NULL ? string(*botId) : string())
+                         .append("You hear an echo: ").append(echoMsg)
          );
      });
 }
