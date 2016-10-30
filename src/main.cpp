@@ -9,6 +9,9 @@ using namespace claptp;
 
 bool sigintGot = false;
 
+string botId("anon: ");
+
+
 void initBot(Bot&);
 
 int main(int argCount, char** argVal) {
@@ -21,6 +24,10 @@ int main(int argCount, char** argVal) {
 		printf("SIGINT got");
 		sigintGot = true;
 	});
+
+    if (argCount > 2) {
+        botId = string(argVal[2]).append(": ");
+    }
 
     try {
         Bot bot(argVal[1]);
@@ -46,24 +53,31 @@ void initBot(Bot& bot) {
     bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down."
+                botId.append(
+                        "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down."
+                )
         );
     });
 
     bot.getEvents().onCommand("enough", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                "Oh my God, I'm leaking! I think I'm leaking! Ahhhh, I'm leaking! There's oil everywhere!"
+                botId.append(
+                        "Oh my God, I'm leaking! I think I'm leaking! Ahhhh, I'm leaking! There's oil everywhere!"
+                )
         );
         sigintGot = true;
     });
 
-    bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
-        if (!StringTools::startsWith(message->text, "/echo")) {
-            return;
-        }
-        string echoMsg = message->text.substr(strlen("/echo"));
-        printf("User wrote %s\n", echoMsg.c_str());
-        bot.getApi().sendMessage(message->chat->id, "You hear echo: " + echoMsg);
-    });
+     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
+         if (!StringTools::startsWith(message->text, "/echo")) {
+             return;
+         }
+         string echoMsg = message->text.substr(strlen("/echo"));
+         printf("User wrote %s\n", echoMsg.c_str());
+         bot.getApi().sendMessage(
+                 message->chat->id,
+                 botId.append("You hear an echo: ").append(echoMsg)
+         );
+     });
 }
