@@ -6,11 +6,11 @@ using namespace TgBot;
 
 bool sigintGot = false;
 
-Bot initBot(string);
+Bot initBot(string&);
 
 int main(int argCount, char** argVal) {
     if (argCount < 2) {
-        printf("No token provided. Please specify the bot token.");
+        printf("No token provided. Please specify the bot token.\n");
         return 0;
     }
 
@@ -19,8 +19,10 @@ int main(int argCount, char** argVal) {
 		sigintGot = true;
 	});
 
+    string botToken(argVal[1]);
+
     try {
-        TgLongPoll longPoll(initBot(string(*(argVal + 1))));
+        TgLongPoll longPoll(initBot(botToken));
         printf("Polling...\n");
         while (!sigintGot) {
             longPoll.start();
@@ -32,7 +34,7 @@ int main(int argCount, char** argVal) {
     return 0;
 }
 
-Bot initBot(string botToken) {
+Bot initBot(string& botToken) {
     Bot bot(botToken);
 
     bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
