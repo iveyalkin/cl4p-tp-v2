@@ -4,7 +4,10 @@ project(cl4ptp)
 ### sources
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(LIBRARIES lib)
-set(SOURCES src/main.cpp)
+set(SOURCES
+        src/main.cpp
+        src/LongPoll.cpp
+        )
 include_directories(
         ${LIBRARIES}/tgbot-cpp/include
         /usr/local/include
