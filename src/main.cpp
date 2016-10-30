@@ -6,7 +6,7 @@ using namespace TgBot;
 
 bool sigintGot = false;
 
-Bot initBot(string&);
+void initBot(Bot&);
 
 int main(int argCount, char** argVal) {
     if (argCount < 2) {
@@ -19,10 +19,11 @@ int main(int argCount, char** argVal) {
 		sigintGot = true;
 	});
 
-    string botToken(argVal[1]);
-
     try {
-        TgLongPoll longPoll(initBot(botToken));
+        Bot bot(argVal[1]);
+        initBot(bot);
+
+        TgLongPoll longPoll(bot);
         printf("Polling...\n");
         while (!sigintGot) {
             longPoll.start();
@@ -34,8 +35,7 @@ int main(int argCount, char** argVal) {
     return 0;
 }
 
-Bot initBot(string& botToken) {
-    Bot bot(botToken);
+void initBot(Bot& bot) {
 
     bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
@@ -51,6 +51,4 @@ Bot initBot(string& botToken) {
         }
         bot.getApi().sendMessage(message->chat->id, "Your message is: " + message->text);
     });
-
-    return bot;
 }
