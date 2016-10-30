@@ -53,7 +53,7 @@ void initBot(Bot& bot) {
     bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                botId.append(
+                string(botId).append(
                         "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down."
                 )
         );
@@ -62,7 +62,7 @@ void initBot(Bot& bot) {
     bot.getEvents().onCommand("enough", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                botId.append(
+                string(botId).append(
                         "Oh my God, I'm leaking! I think I'm leaking! Ahhhh, I'm leaking! There's oil everywhere!"
                 )
         );
@@ -77,7 +77,7 @@ void initBot(Bot& bot) {
          printf("User wrote %s\n", echoMsg.c_str());
          bot.getApi().sendMessage(
                  message->chat->id,
-                 botId.append("You hear an echo: ").append(echoMsg)
+                 string(botId).append("You hear an echo: ").append(echoMsg)
          );
      });
 }
