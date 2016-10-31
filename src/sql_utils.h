@@ -26,6 +26,9 @@ namespace claptp {
     /*void execSql(const char *query);
 
     void execSql(const char *query, int (*callback)(void *, int, char **, char **));*/
+
+    // TODO temporary
+    void readSampleTable(char* buffer);
 }
 
 #endif //CL4PTP_SQL_UTILS_H

@@ -68,9 +68,15 @@ void initBot(Bot& bot, boost::optional<string>& logPrefix) {
     });
 
     bot.getEvents().onCommand("querydb", [&bot](Message::Ptr message) {
-        execSql("SELECT * FROM SampleTable;",
-                [/*&bot, &message*/](void *NotUsed, int argc, char **argv, char **azColName) -> int {
-                    /*string result;
+        char buffer[256];
+        readSampleTable(buffer);
+        bot.getApi().sendMessage(
+                message->chat->id,
+                buffer
+        );
+        /*execSql("SELECT * FROM SampleTable;",
+                [*//*&bot, &message*//*](void *NotUsed, int argc, char **argv, char **azColName) -> int {
+                    *//*string result;
                     for(int i = 0; i < argc; i++) {
                         result.append(azColName[i])
                                 .append(" = ")
@@ -80,10 +86,10 @@ void initBot(Bot& bot, boost::optional<string>& logPrefix) {
                     bot.getApi().sendMessage(
                             message->chat->id,
                             result
-                    );*/
+                    );*//*
                     return SQLITE_OK;
                 }
-        );
+        );*/
     });
 
     bot.getEvents().onCommand("enough", [&bot, &logPrefix](Message::Ptr message) {
