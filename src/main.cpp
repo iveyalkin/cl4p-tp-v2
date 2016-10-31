@@ -15,6 +15,8 @@ int main(int argCount, char** argVal) {
         printf("Token is: %s\n", argVal[1]);
     }
 
+    setbuf(stdout, NULL);
+
     signal(SIGINT, [](int s) {
 		printf("SIGINT got\n");
 		sigintGot = true;
