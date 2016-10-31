@@ -34,8 +34,8 @@ namespace claptp {
                 iter = queries.begin(),
                 end = queries.end();
         while (iter != end) {
-            if (sqlite3_exec(pDb, *iter, NULL, 0, &pErrMsg) != SQLITE_OK) {
-                printf("Creating DB schema error: %s\n", pErrMsg);
+            if (int rc = sqlite3_exec(pDb, *iter, NULL, 0, &pErrMsg) != SQLITE_OK) {
+                printf("Creating DB schema error[%d]: %s\n", rc, pErrMsg);
                 sqlite3_free(pErrMsg);
                 pErrMsg = NULL;
                 throw "Cannot execute query";
@@ -46,7 +46,7 @@ namespace claptp {
 
     void initSqlite(const char *pDbName) {
         if (int rc = sqlite3_open_v2(pDbName, &pSqliteDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
-            printf("SQL error: %d\n", rc);
+            printf("Open database error: %d\n", rc);
             closeSqlite();
             throw "Cannot open SQLite.";
         }
@@ -61,7 +61,7 @@ namespace claptp {
 
     void execSql(basic_string<char, char_traits<char>, allocator<char>> query, int (*callback)(void *, int, char **, char **)) {
         if (int rc = sqlite3_exec(pSqliteDB, query.c_str(), callback, 0, &pSqliteErrMsg) != SQLITE_OK) {
-            printf("SQL error: %s\n", pSqliteErrMsg);
+            printf("SQL error[%d]: %s\n", rc, pSqliteErrMsg);
             sqlite3_free(pSqliteErrMsg);
             pSqliteErrMsg = NULL;
             throw "Cannot execute query";
