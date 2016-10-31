@@ -4,12 +4,16 @@ project(cl4ptp)
 ### sources
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(LIBRARIES lib)
+#${LIBRARIES}/sqlite/shell.c
 set(SOURCES
         src/main.cpp
         src/LongPoll.cpp
-        )
+        src/sql_utils.cpp
+        ${LIBRARIES}/sqlite/sqlite3.c)
 include_directories(
+        ${SOURCES}
         ${LIBRARIES}/tgbot-cpp/include
+        ${LIBRARIES}/sqlite
         /usr/local/include
 )
 

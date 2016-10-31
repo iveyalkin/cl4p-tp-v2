@@ -1,35 +1,41 @@
-#include <iostream>
-#include "tgbot/tgbot.h"
-#include "LongPoll.h"
+#include "main.h"
+#include "sql_utils.h"
 
 using namespace std;
 using namespace TgBot;
 using namespace claptp;
 
-
 bool sigintGot = false;
 
 string* botId = NULL;
-
-
-void initBot(Bot&);
 
 int main(int argCount, char** argVal) {
     if (argCount < 2) {
         printf("No token provided. Please specify the bot token.\n");
         return 0;
+    } else {
+        printf("Token is: %s\n", argVal[1]);
     }
 
     signal(SIGINT, [](int s) {
-		printf("SIGINT got");
+		printf("SIGINT got\n");
 		sigintGot = true;
 	});
 
     if (argCount > 2) {
+        printf("BotId is: %s\n", argVal[2]);
         botId = &string(argVal[2]).append(": ");
+
+        for(int i = 3; i < argCount; i++) {
+            printf("Arg[%d] is: %s\n", i, argVal[i]);
+        }
     }
 
     try {
+        initSqlite(databseName);
+
+        execSql("");
+
         Bot bot(argVal[1]);
         initBot(bot);
 
@@ -45,11 +51,12 @@ int main(int argCount, char** argVal) {
         printf("error: %s\n", e.what());
     }
 
+    closeSqlite();
+
     return 0;
 }
 
 void initBot(Bot& bot) {
-
     bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
@@ -57,6 +64,25 @@ void initBot(Bot& bot) {
                         .append(
                         "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down."
                         )
+        );
+    });
+
+    bot.getEvents().onCommand("querydb", [&bot](Message::Ptr message) {
+        execSql("SELECT * FROM SampleTable;",
+                [/*&bot, &message*/](void *NotUsed, int argc, char **argv, char **azColName) -> int {
+                    /*string result;
+                    for(int i = 0; i < argc; i++) {
+                        result.append(azColName[i])
+                                .append(" = ")
+                                .append(argv[i] ? argv[i] : "NULL")
+                                .append("\n");
+                    }
+                    bot.getApi().sendMessage(
+                            message->chat->id,
+                            result
+                    );*/
+                    return SQLITE_OK;
+                }
         );
     });
 
