@@ -41,4 +41,5 @@ target_link_libraries(
         ${Boost_LIBRARIES}
         ${OPENSSL_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
+        ${CMAKE_DL_LIBS}
 )
