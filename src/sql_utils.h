@@ -15,7 +15,7 @@ namespace claptp {
 
     char* getLastSqliteError();
 
-    void initSqlite(const char *dbName);
+    void initSqlite(const char *pDbName);
 
     void closeSqlite();
 
