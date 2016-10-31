@@ -10,6 +10,6 @@
 
 const char* databseName = "cl4ptp.db";
 
-void initBot(TgBot::Bot& bot);
+void initBot(Bot& bot, boost::optional<std::string>& anOptional);
 
 #endif //CL4PTP_UTILS_H

@@ -7,8 +7,6 @@ using namespace claptp;
 
 bool sigintGot = false;
 
-string* botId = NULL;
-
 int main(int argCount, char** argVal) {
     if (argCount < 2) {
         printf("No token provided. Please specify the bot token.\n");
@@ -22,9 +20,11 @@ int main(int argCount, char** argVal) {
 		sigintGot = true;
 	});
 
+    boost::optional<std::string> logPrefix;
+
     if (argCount > 2) {
-        printf("BotId is: %s\n", argVal[2]);
-        botId = &string(argVal[2]).append(": ");
+        printf("Log tag is: %s\n", argVal[2]);
+        logPrefix = string(argVal[2]).append(": ");
 
         for(int i = 3; i < argCount; i++) {
             printf("Arg[%d] is: %s\n", i, argVal[i]);
@@ -37,7 +37,7 @@ int main(int argCount, char** argVal) {
         execSql("");
 
         Bot bot(argVal[1]);
-        initBot(bot);
+        initBot(bot, logPrefix);
 
         LongPoll longPoll(bot);
         longPoll.start();
@@ -56,11 +56,11 @@ int main(int argCount, char** argVal) {
     return 0;
 }
 
-void initBot(Bot& bot) {
-    bot.getEvents().onCommand("greeting", [&bot](Message::Ptr message) {
+void initBot(Bot& bot, boost::optional<string>& logPrefix) {
+    bot.getEvents().onCommand("greeting", [&bot, &logPrefix](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                (botId != NULL ? string(*botId) : string())
+                (logPrefix ? *logPrefix : string())
                         .append(
                         "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down."
                         )
@@ -86,10 +86,10 @@ void initBot(Bot& bot) {
         );
     });
 
-    bot.getEvents().onCommand("enough", [&bot](Message::Ptr message) {
+    bot.getEvents().onCommand("enough", [&bot, &logPrefix](Message::Ptr message) {
         bot.getApi().sendMessage(
                 message->chat->id,
-                (botId != NULL ? string(*botId) : string())
+                (logPrefix ? *logPrefix : string())
                         .append(
                         "Oh my God, I'm leaking! I think I'm leaking! Ahhhh, I'm leaking! There's oil everywhere!"
                         )
@@ -97,7 +97,7 @@ void initBot(Bot& bot) {
         sigintGot = true;
     });
 
-     bot.getEvents().onAnyMessage([&bot](Message::Ptr message) {
+     bot.getEvents().onAnyMessage([&bot, &logPrefix](Message::Ptr message) {
          if (!StringTools::startsWith(message->text, "/echo")) {
              return;
          }
@@ -105,7 +105,7 @@ void initBot(Bot& bot) {
          printf("User wrote %s\n", echoMsg.c_str());
          bot.getApi().sendMessage(
                  message->chat->id,
-                 (botId != NULL ? string(*botId) : string())
+                 (logPrefix ? *logPrefix : string())
                          .append("You hear an echo: ").append(echoMsg)
          );
      });
