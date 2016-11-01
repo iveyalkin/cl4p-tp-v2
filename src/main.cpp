@@ -28,7 +28,7 @@ int main(int argCount, char** argVal) {
 		sigintGot = true;
 	});
 
-    boost::optional<std::string> logPrefix;
+    std::string logPrefix;
 
     if (argCount > 2) {
         printf("Log tag is: %s\n", argVal[2]);

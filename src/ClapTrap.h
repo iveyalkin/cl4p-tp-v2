@@ -17,14 +17,17 @@ namespace ClapTp {
     public:
         ClapTrap(
                 const std::string &token,
-                boost::optional<std::string> &logPrefix,
+                const std::string &logPrefix,
                 SqlWrapper& sqlWrapper
         );
 
         bool shouldShutdown();
 
+    protected:
+        void replyToChat(int64_t chatId, const std::string &message);
+
     private:
-        boost::optional<std::string> _logPrefix;
+        std::string _logPrefix;
 
         SqlWrapper _dbInstance;
 
