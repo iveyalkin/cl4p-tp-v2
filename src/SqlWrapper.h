@@ -31,12 +31,8 @@ namespace ClapTp {
 
         void execSql(std::basic_string<char, std::char_traits<char>, std::allocator<char>> query);
 
-        /*void execSql(const char *query);
-
-        void execSql(const char *query, int (*callback)(void *, int, char **, char **));*/
-
         // TODO temporary
-        void readSampleTable(char *buffer);
+        void fetchUrls(char *buffer);
 
     private:
         sqlite3 *pSqliteDB = NULL;

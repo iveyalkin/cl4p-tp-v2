@@ -33,11 +33,11 @@ namespace ClapTp {
     void SqlWrapper::initSchema(sqlite3 *pDb) {
         char *pErrMsg = NULL;
         std::vector<const char*> queries;
-        queries.push_back("CREATE TABLE IF NOT EXISTS 'SampleTable' (\n"
-                                  "'user_id' TEXT,\n"
+        queries.push_back("CREATE TABLE IF NOT EXISTS 'UrlCache' (\n"
+                                  "'id' INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                                  "'user_id' INTEGER NOT NULL,\n"
                                   "'link' TEXT NOT NULL UNIQUE,\n"
-                                  "'description' TEXT,\n"
-                                  "PRIMARY KEY('user_id')\n"
+                                  "'description' TEXT\n"
                                   ");");
         vector<const char*>::const_iterator
                 iter = queries.begin(),
@@ -63,39 +63,41 @@ namespace ClapTp {
     }
 
     void SqlWrapper::saveUrl(int32_t& userId, std::string& url, std::string& description) {
-
+        char buffer[512];
+        sprintf(buffer,
+                "INSERT INTO 'UrlCache'('user_id', 'link', 'description') VALUES(%d, '%s', '%s');",
+                userId,
+                url.c_str(),
+                description.c_str()
+        );
+        execSql(buffer);
     }
 
-    void SqlWrapper::readSampleTable(char* buffer) {
-        execSql("DELETE FROM 'SampleTable';");
-
-        execSql("INSERT INTO 'SampleTable' VALUES('1234567',\n"
-                        "'https://github.com/iveyalkin/cl4p-tp-v2/',\n"
-                        "'Check this out! I`m dancing! I`m dancing!');");
-
+    void SqlWrapper::fetchUrls(char *buffer) {
         sqlite3_stmt *statement = NULL;
 
-        // prepare query
-        sqlite3_prepare_v2(pSqliteDB, "SELECT * FROM SampleTable;", -1, &statement, 0);
+        sqlite3_prepare_v2(pSqliteDB, "SELECT * FROM UrlCache;", -1, &statement, 0);
 
         // if there were parameters to bind, we'd do that here
 
-        // retrieve the row by row of the results
-        // for() {}
-        if (int result = sqlite3_step(statement) == SQLITE_ROW)
+        string result;
+        char tmpBuffer[512];
+        int sqlStepResult;
+        while ((sqlStepResult = sqlite3_step(statement)) == SQLITE_ROW)
         {
-            // retrieve the value of the first column (0-based)
             sprintf(
-                    buffer, "User %s [%s]: %s",
-                    sqlite3_column_text(statement, 0),
-                    sqlite3_column_text(statement, 1),
-                    sqlite3_column_text(statement, 2)
+                    tmpBuffer, "User %d [%s]: %s",
+                    sqlite3_column_int(statement, 1),
+                    sqlite3_column_text(statement, 2),
+                    sqlite3_column_text(statement, 3)
             );
-        } else {
-            printf("Failed to read sample table error %d", result);
+            result.append(tmpBuffer).append(";\n");
+        }
+        strcpy(buffer, result.c_str());
+        if (sqlStepResult != SQLITE_DONE) {
+            printf("Failed to read table. Error code: %d", sqlStepResult);
         }
 
-// free our statement
         sqlite3_finalize(statement);
     }
 
@@ -104,7 +106,6 @@ namespace ClapTp {
             printf("SQL error[%d]: %s\n", rc, pSqliteErrMsg);
             sqlite3_free(pSqliteErrMsg);
             pSqliteErrMsg = NULL;
-            throw "Cannot execute query";
         }
     }
 
@@ -113,12 +114,4 @@ namespace ClapTp {
             return SQLITE_OK;
         });
     }
-
-    /*void SqlWrapper::execSql(const char *query) {
-        execSql(string(query));
-    }*/
-
-    /*void SqlWrapper::execSql(const char *query, int (*callback)(void *, int, char **, char **)) {
-        execSql(string(query), callback);
-    }*/
 }

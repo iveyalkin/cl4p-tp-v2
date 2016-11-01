@@ -21,12 +21,9 @@ ClapTrap::ClapTrap(const std::string &token, boost::optional<std::string>& logPr
     });
 
     getEvents().onCommand("querydb", [this](Message::Ptr message) {
-        char buffer[256];
-        _dbInstance.readSampleTable(buffer);
-        getApi().sendMessage(
-                message->chat->id,
-                buffer
-        );
+        char buffer[1024 * 10];
+        _dbInstance.fetchUrls(buffer);
+        getApi().sendMessage(message->chat->id, buffer);
     });
 
     getEvents().onCommand("enough", [this](Message::Ptr message) {
