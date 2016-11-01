@@ -84,7 +84,7 @@ ClapTrap::ClapTrap(const std::string &token, const std::string &logPrefix, SqlWr
 void ClapTrap::replyToChat(int64_t chatId, const std::string &message)
 {
     getApi().sendMessage(chatId,
-                        _logPrefix.append(message));
+                        std::string(_logPrefix).append(message));
 }
 
 bool ClapTrap::shouldShutdown() {
