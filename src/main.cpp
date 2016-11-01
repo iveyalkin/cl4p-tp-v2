@@ -1,4 +1,5 @@
 #include "stdio.h"
+#include "signal.h"
 #include "SqlWrapper.h"
 #include "ClapTrap.h"
 #include "LongPoll.h"

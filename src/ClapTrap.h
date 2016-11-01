@@ -5,7 +5,7 @@
 #ifndef CL4PTP_CLAPTRAP_H
 #define CL4PTP_CLAPTRAP_H
 
-#include "stdio.h"
+#include <string>
 #include "tgbot/Bot.h"
 #include "tgbot/types/Message.h"
 #include "SqlWrapper.h"

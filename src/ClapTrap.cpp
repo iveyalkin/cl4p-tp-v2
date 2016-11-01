@@ -3,6 +3,7 @@
 //
 
 #include "ClapTrap.h"
+#include "stdio.h"
 
 using namespace TgBot;
 using namespace ClapTp;

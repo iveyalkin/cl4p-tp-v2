@@ -2,8 +2,8 @@
 // Created by Basil Terkin on 10/30/16.
 //
 
-#include <vector>
 #include "SqlWrapper.h"
+#include "string.h"
 
 using namespace std;
 

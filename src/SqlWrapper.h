@@ -5,7 +5,8 @@
 #ifndef CL4PTP_SQL_WRAPPER_H
 #define CL4PTP_SQL_WRAPPER_H
 
-#include "stdio.h"
+#include <vector>
+#include <string>
 #include "sqlite3.h"
 #include "tgbot/types/User.h"
 
