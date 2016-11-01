@@ -3,25 +3,34 @@
 //
 
 #include <vector>
-#include "sql_utils.h"
+#include "SqlWrapper.h"
 
 using namespace std;
 
-namespace claptp {
+namespace ClapTp {
 
-    sqlite3 *pSqliteDB = NULL;
+    SqlWrapper::SqlWrapper(const char *pDatabaseName) : _pDbName(pDatabaseName) {
+        if (int rc = sqlite3_open_v2(_pDbName, &pSqliteDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
+            printf("Open database error: %d\n", rc);
+            closeSqlite();
+            throw "Cannot open SQLite.";
+        }
+        initSchema(pSqliteDB);
+    }
 
-    char *pSqliteErrMsg = NULL;
+    SqlWrapper::~SqlWrapper() {
+        closeSqlite();
+    }
 
-    sqlite3* getSqliteInstance() {
+    sqlite3* SqlWrapper::getSqliteInstance() {
         return pSqliteDB;
     }
 
-    char* getLastSqliteError() {
+    char* SqlWrapper::getLastSqliteError() {
         return pSqliteErrMsg;
     }
 
-    void initSchema(sqlite3 *pDb) {
+    void SqlWrapper::initSchema(sqlite3 *pDb) {
         char *pErrMsg = NULL;
         std::vector<const char*> queries;
         queries.push_back("CREATE TABLE IF NOT EXISTS 'SampleTable' (\n"
@@ -44,22 +53,20 @@ namespace claptp {
         }
     }
 
-    void initSqlite(const char *pDbName) {
-        if (int rc = sqlite3_open_v2(pDbName, &pSqliteDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
-            printf("Open database error: %d\n", rc);
-            closeSqlite();
-            throw "Cannot open SQLite.";
-        }
-        initSchema(pSqliteDB);
-    }
-
-
-    void closeSqlite() {
+    void SqlWrapper::closeSqlite() {
         sqlite3_close(pSqliteDB);
         pSqliteDB = NULL;
     }
 
-    void readSampleTable(char* buffer) {
+    void SqlWrapper::saveUser(TgBot::User::Ptr user) {
+
+    }
+
+    void SqlWrapper::saveUrl(int32_t& userId, std::string& url, std::string& description) {
+
+    }
+
+    void SqlWrapper::readSampleTable(char* buffer) {
         execSql("DELETE FROM 'SampleTable';");
 
         execSql("INSERT INTO 'SampleTable' VALUES('1234567',\n"
@@ -92,7 +99,7 @@ namespace claptp {
         sqlite3_finalize(statement);
     }
 
-    void execSql(basic_string<char, char_traits<char>, allocator<char>> query, int (*callback)(void *, int, char **, char **)) {
+    void SqlWrapper::execSql(basic_string<char, char_traits<char>, allocator<char>> query, int (*callback)(void *, int, char **, char **)) {
         if (int rc = sqlite3_exec(pSqliteDB, query.c_str(), callback, 0, &pSqliteErrMsg) != SQLITE_OK) {
             printf("SQL error[%d]: %s\n", rc, pSqliteErrMsg);
             sqlite3_free(pSqliteErrMsg);
@@ -101,17 +108,17 @@ namespace claptp {
         }
     }
 
-    void execSql(basic_string<char, char_traits<char>, allocator<char>> query) {
+    void SqlWrapper::execSql(basic_string<char, char_traits<char>, allocator<char>> query) {
         execSql(query, [](void *NotUsed, int argc, char **argv, char **azColName) -> int {
             return SQLITE_OK;
         });
     }
 
-    /*void execSql(const char *query) {
+    /*void SqlWrapper::execSql(const char *query) {
         execSql(string(query));
     }*/
 
-    /*void execSql(const char *query, int (*callback)(void *, int, char **, char **)) {
+    /*void SqlWrapper::execSql(const char *query, int (*callback)(void *, int, char **, char **)) {
         execSql(string(query), callback);
     }*/
 }

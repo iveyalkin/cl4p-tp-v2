@@ -22,7 +22,7 @@
 
 #include "LongPoll.h"
 
-namespace claptp {
+namespace ClapTp {
 
     LongPoll::LongPoll(const Api *api, const EventHandler *eventHandler) : _api(api), _eventHandler(eventHandler) {
     }
