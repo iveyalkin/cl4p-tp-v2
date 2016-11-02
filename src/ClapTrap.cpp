@@ -64,7 +64,7 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
                 end = message->entities.end();
         _dbInstance.saveUser(message->from);
         while (itr != end) {
-            if ((*itr)->url.compare("url")) {
+            if (!(*itr)->type.compare("url")) {
                 MessageEntity::Ptr entity = *itr;
                 std::string url = message->text.substr(entity->offset, entity->length);
                 std::string description;
