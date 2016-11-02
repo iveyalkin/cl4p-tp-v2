@@ -8,12 +8,11 @@
 using namespace TgBot;
 using namespace ClapTp;
 
-ClapTrap::ClapTrap(const std::string &token, const std::string &logPrefix, SqlWrapper& sqlWrapper)
-        : Bot(token), _logPrefix(logPrefix), _dbInstance(sqlWrapper) {
+ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, std::string &debugChatId)
+        : Bot(token), _dbInstance(sqlWrapper), _logPrefix(logPrefix), _debugChatId(debugChatId) {
 
     getEvents().onCommand("greeting", [this](Message::Ptr message) {
-        replyToChat(message->chat->id,
-                    "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down.");
+        sendGreeting(message->chat->id);
     });
 
     getEvents().onCommand("querydb", [this](Message::Ptr message) {
@@ -81,8 +80,7 @@ ClapTrap::ClapTrap(const std::string &token, const std::string &logPrefix, SqlWr
     });
 }
 
-void ClapTrap::replyToChat(int64_t chatId, const std::string &message)
-{
+void ClapTrap::replyToChat(int64_t chatId, const std::string &message) const {
     auto prefix(_logPrefix);
     getApi().sendMessage(chatId,
                         prefix.append(message));
@@ -90,4 +88,16 @@ void ClapTrap::replyToChat(int64_t chatId, const std::string &message)
 
 bool ClapTrap::shouldShutdown() {
     return _shoudlShutdown;
+}
+
+void ClapTrap::sendGreeting(int64_t chatId) const {
+    replyToChat(chatId, "Unce! Unce! Unce! Unce! Ooo, oh check me out. Unce! Unce! Unce! Unce! Oh, come on get down.");
+}
+
+const std::string &ClapTrap::getDebugChatId() const {
+    return _debugChatId;
+}
+
+bool ClapTrap::isDebug()const {
+    return _debugChatId.length() > 0;
 }

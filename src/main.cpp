@@ -33,18 +33,24 @@ int main(int argCount, char** argVal) {
     if (argCount > 2) {
         printf("Log tag is: %s\n", argVal[2]);
         logPrefix = string(argVal[2]).append(": ");
+    }
 
-        for(int i = 3; i < argCount; i++) {
-            printf("Arg[%d] is: %s\n", i, argVal[i]);
-        }
+    std::string debugChatId;
+    if (argCount > 3) {
+        printf("Debug chat is: %s\n", argVal[3]);
+        debugChatId = string(argVal[3]);
+    }
+
+    for(int i = 4; i < argCount; i++) {
+        printf("Arg[%d] is: %s\n", i, argVal[i]);
     }
 
     try {
         SqlWrapper sqlWrapper(DATABASE_NAME);
-        ClapTrap bot(argVal[1], logPrefix, sqlWrapper);
+        ClapTrap bot(argVal[1], sqlWrapper, logPrefix, debugChatId);
         LongPoll longPoll(bot);
 
-        longPoll.start();
+        longPoll.init();
 
         printf("Polling...\n");
         while (!sigintGot) {

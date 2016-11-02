@@ -15,19 +15,23 @@ namespace ClapTp {
     class ClapTrap : public TgBot::Bot {
 
     public:
-        ClapTrap(
-                const std::string &token,
-                const std::string &logPrefix,
-                SqlWrapper& sqlWrapper
-        );
+        ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, std::string &debugChatId);
 
         bool shouldShutdown();
 
+        void sendGreeting(int64_t chatId) const;
+
+        bool isDebug() const;
+
+        const std::string &getDebugChatId() const;
+
     protected:
-        void replyToChat(int64_t chatId, const std::string &message);
+        void replyToChat(int64_t chatId, const std::string &message) const;
 
     private:
         std::string _logPrefix;
+
+        std::string _debugChatId;
 
         SqlWrapper _dbInstance;
 
