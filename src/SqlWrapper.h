@@ -25,6 +25,9 @@ namespace ClapTp {
 
         void saveUser(TgBot::User::Ptr user);
 
+        void saveStash(TgBot::User::Ptr user, const std::string &stashText);
+        std::vector<std::string> loadStash(TgBot::User::Ptr user);
+
         void saveUrl(int32_t &userId, std::string &url, std::string &description);
 
         void execSql(std::basic_string<char, std::char_traits<char>, std::allocator<char>> query,

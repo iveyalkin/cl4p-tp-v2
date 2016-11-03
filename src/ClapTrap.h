@@ -29,11 +29,11 @@ namespace ClapTp {
         void replyToChat(int64_t chatId, const std::string &message) const;
 
     private:
+        SqlWrapper _dbInstance;
+
         std::string _logPrefix;
 
         std::string _debugChatId;
-
-        SqlWrapper _dbInstance;
 
         bool _shoudlShutdown = false;
     };

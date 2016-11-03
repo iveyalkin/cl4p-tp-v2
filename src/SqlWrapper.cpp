@@ -4,6 +4,7 @@
 
 #include "SqlWrapper.h"
 #include "string.h"
+#include "sstream"
 
 using namespace std;
 
@@ -39,6 +40,16 @@ namespace ClapTp {
                                   "'link' TEXT NOT NULL UNIQUE,\n"
                                   "'description' TEXT\n"
                                   ");");
+        queries.push_back("CREATE UNIQUE INDEX IF NOT EXISTS URLCACHE_ID ON 'UrlCache'(id); ");
+        queries.push_back("CREATE INDEX IF NOT EXISTS URLCACHE_USER_ID ON 'UrlCache'(user_id); ");
+
+        queries.push_back("CREATE TABLE IF NOT EXISTS 'Stashes' ("
+                          "'id' INTEGER PRIMARY KEY AUTOINCREMENT, "
+                          "'user_id' INTEGER NOT NULL, "
+                          "'text' TEXT NOT NULL); ");
+        queries.push_back("CREATE UNIQUE INDEX IF NOT EXISTS STASHES_ID ON 'Stashes'(id); ");
+        queries.push_back("CREATE INDEX IF NOT EXISTS STASHES_USER_ID ON 'Stashes'(user_id); ");
+
         vector<const char*>::const_iterator
                 iter = queries.begin(),
                 end = queries.end();
@@ -59,6 +70,20 @@ namespace ClapTp {
     }
 
     void SqlWrapper::saveUser(TgBot::User::Ptr user) {
+
+    }
+
+    void SqlWrapper::saveStash(TgBot::User::Ptr user, const std::string &stashText)
+    {
+        std::ostringstream ss;
+        ss << "INSERT INTO 'Stashes' ('user_id', 'text') VALUES ("
+           << user->id << ", '"
+           << stashText << "'); ";
+        execSql(ss.str().c_str());
+    }
+
+    std::vector<std::string> loadStash(TgBot::User::Ptr user)
+    {
 
     }
 
