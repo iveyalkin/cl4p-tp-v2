@@ -4,13 +4,14 @@
 
 #include "ClapTrap.h"
 #include "stdio.h"
+#include <codecvt>
 
 #define CHAT_ID message->chat->id
 
 using namespace TgBot;
 using namespace ClapTp;
 
-std::string replaceMe(User::Ptr user) {
+std::string printUser(User::Ptr user) {
     if (user->firstName.empty()) {
         return user->username;
     } else if (user->lastName.empty()) {
@@ -25,6 +26,24 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
 
     getEvents().onCommand("greeting", [this](Message::Ptr message) {
         sendGreeting(CHAT_ID);
+    });
+
+    getEvents().onCommand("wtf", [this](Message::Ptr message) {
+        std::string reply;
+        if (message->replyToMessage)
+        {
+            if (message->replyToMessage->text.empty()) {
+                reply = std::string("Donno what you're talking about!");
+            } else {
+
+                reply = *flipQwerty(message->replyToMessage->text);
+            }
+        }
+        else
+        {
+            reply = std::string("I need an original message in reply.");
+        }
+        replyToChat(CHAT_ID, reply, false, message->replyToMessage->messageId);
     });
 
     getEvents().onCommand("querydb", [this](Message::Ptr message) {
@@ -83,7 +102,7 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
                         messageText = std::string(message->text.substr(0, (*itr)->offset));
                     }
                     messageText
-                            .append(replaceMe(message->from))
+                            .append(printUser(message->from))
                             .append(restText);
 
                     replyToChat(CHAT_ID, messageText);
@@ -116,10 +135,13 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
     });
 }
 
-void ClapTrap::replyToChat(int64_t chatId, const std::string &message) const {
+void ClapTrap::replyToChat(int64_t chatId, const std::string &message, bool disableWebPagePreview, int32_t replyToMessageId) const {
     auto prefix(_logPrefix);
     getApi().sendMessage(chatId,
-                        prefix.append(message));
+                         prefix.append(message),
+                         disableWebPagePreview,
+                         replyToMessageId
+    );
 }
 
 bool ClapTrap::shouldShutdown() {
@@ -136,4 +158,31 @@ const std::string &ClapTrap::getDebugChatId() const {
 
 bool ClapTrap::isDebug()const {
     return _debugChatId.length() > 0;
+}
+
+std::shared_ptr<std::string> ClapTrap::flipQwerty(std::string &originalText) {
+    wchar_t rus[] {L'й', L'ц', L'у', L'к', L'е', L'н', L'г', L'ш', L'щ', L'з', L'х', L'ъ', L'ф', L'ы', L'в', L'а', L'п', L'р', L'о', L'л', L'д', L'ж', L'э', L'я', L'ч', L'с', L'м', L'и', L'т', L'ь', L'б', L'ю', L'Й', L'Ц', L'У', L'К', L'Е', L'Н', L'Г', L'Ш', L'Щ', L'З', L'Х', L'Ъ', L'Ф', L'Ы', L'В', L'А', L'П', L'Р', L'О', L'Л', L'Д', L'Ж', L'Э', L'Я', L'Ч', L'С', L'М', L'И', L'Т', L'Ь', L'Б', L'Ю', L',', L'ё', L'Ё'};
+    wchar_t eng[] {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'"[0], 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', '`', '~'};
+
+    wchar_t output[originalText.length()];
+
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring wUtfString = converter.from_bytes(originalText);
+    wcscpy(output, wUtfString.c_str());
+
+    for (int i = 0, size = (int) wUtfString.length(); i < size; i++) {
+        wchar_t &at = wUtfString.at((unsigned long) i);
+        for (int k = 0, rusSize = sizeof(rus) / sizeof(wchar_t); k < rusSize; k++){
+            if (at == eng[k]) {
+                output[i] = rus[k];
+                break;
+            } else if (at == rus[k]) {
+                output[i] = eng[k];
+                break;
+            }
+        }
+    }
+
+    const std::string &string = converter.to_bytes(output);
+    return std::shared_ptr<std::string>(new std::string(string));
 }

@@ -26,7 +26,9 @@ namespace ClapTp {
         const std::string &getDebugChatId() const;
 
     protected:
-        void replyToChat(int64_t chatId, const std::string &message) const;
+        void replyToChat(int64_t chatId, const std::string &message, bool disableWebPagePreview = false, int32_t replyToMessageId = 0) const;
+
+        std::shared_ptr<std::string> flipQwerty(std::string &originalText);
 
     private:
         std::string _logPrefix;
