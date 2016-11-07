@@ -166,7 +166,7 @@ std::shared_ptr<std::string> ClapTrap::flipQwerty(std::string &originalText) {
 
     wchar_t output[originalText.length()];
 
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
     std::wstring wUtfString = converter.from_bytes(originalText);
     wcscpy(output, wUtfString.c_str());
 
