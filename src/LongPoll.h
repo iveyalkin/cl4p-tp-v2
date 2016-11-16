@@ -34,11 +34,11 @@ private:
 
 	int32_t _lastUpdateId = 0;
 
-    const ClapTrap _bot;
-
 	const Api* _api;
 
 	const EventHandler* _eventHandler;
+
+	const ClapTrap &_bot;
 };
 
 }

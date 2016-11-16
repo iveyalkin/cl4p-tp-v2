@@ -31,11 +31,11 @@ namespace ClapTp {
         std::shared_ptr<std::string> flipQwerty(std::string &originalText);
 
     private:
+        SqlWrapper _dbInstance;
+
         std::string _logPrefix;
 
         std::string _debugChatId;
-
-        SqlWrapper _dbInstance;
 
         bool _shoudlShutdown = false;
     };

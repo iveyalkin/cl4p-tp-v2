@@ -70,11 +70,14 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
         if (message->replyToMessage)
         {
             if (message->replyToMessage->text.empty())
+            {
                 reply = std::string("I can only stash a text messages!");
-            else // TODO: store reply message text in DB for message->from->id key
-                reply = std::string("Going to stash: \"")
-                                    .append(message->replyToMessage->text)
-                                    .append("\" for you in my personal Vault!");
+            }
+            else
+            {
+                _dbInstance.saveStash(message->from, message->replyToMessage->text);
+                reply = std::string("Stashed!");
+            }
         }
         else
         {
@@ -84,9 +87,34 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
     });
 
     getEvents().onCommand("unstash", [this](Message::Ptr message) {
-        // TODO: load all message stored for message->from->id user
-        // remove them from DB and send to chat
-        replyToChat(CHAT_ID, "Did you really think I will store your junk!? Poor minion...");
+        if (!message->from)
+            return;
+
+        auto stash = _dbInstance.loadStash(message->from);
+
+        std::stringstream reply;
+
+        if (stash.empty())
+        {
+            reply << "Your stash is empty!";
+        }
+        else
+        {
+            uint messagesToReply = std::min(3u, stash.size());
+            _dbInstance.removeNumStashMessages(message->from, messagesToReply);
+
+            reply << "Here's your stashed messages:\n";
+            for (uint i = 0; i < messagesToReply; ++i)
+            {
+                reply << "\n" << i+1 << ") " << stash[i] << "\n";
+            }
+
+            if (stash.size() > messagesToReply)
+            {
+                reply << "\nAnd there's " << stash.size() - messagesToReply << " more left!";
+            }
+        }
+        replyToChat(CHAT_ID, reply.str());
     });
 
     getEvents().onCommand("me", [this](Message::Ptr message) {
