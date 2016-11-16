@@ -27,6 +27,7 @@ namespace ClapTp {
 
         void saveStash(TgBot::User::Ptr user, const std::string &stashText);
         std::vector<std::string> loadStash(TgBot::User::Ptr user);
+        void removeNumStashMessages(TgBot::User::Ptr user, int count);
 
         void saveUrl(int32_t &userId, std::string &url, std::string &description);
 
