@@ -100,7 +100,7 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
         }
         else
         {
-            uint messagesToReply = std::min(3u, stash.size());
+            uint messagesToReply = std::min(3u, (uint)stash.size());
             _dbInstance.removeNumStashMessages(message->from, messagesToReply);
 
             reply << "Here's your stashed messages:\n";
