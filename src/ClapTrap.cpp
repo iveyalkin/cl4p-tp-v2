@@ -4,12 +4,23 @@
 
 #include "ClapTrap.h"
 #include "stdio.h"
-#include <codecvt>
+#include <boost/locale/encoding_utf.hpp>
 
 #define CHAT_ID message->chat->id
 
 using namespace TgBot;
 using namespace ClapTp;
+
+using boost::locale::conv::utf_to_utf;
+std::wstring to_wstring(const std::string &str)
+{
+    return utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
+}
+
+std::string to_utf8(const std::wstring &str)
+{
+    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
+}
 
 std::string printUser(User::Ptr user) {
     if (user->firstName.empty()) {
@@ -189,18 +200,19 @@ bool ClapTrap::isDebug()const {
 }
 
 std::shared_ptr<std::string> ClapTrap::flipQwerty(std::string &originalText) {
-    wchar_t rus[] {L'й', L'ц', L'у', L'к', L'е', L'н', L'г', L'ш', L'щ', L'з', L'х', L'ъ', L'ф', L'ы', L'в', L'а', L'п', L'р', L'о', L'л', L'д', L'ж', L'э', L'я', L'ч', L'с', L'м', L'и', L'т', L'ь', L'б', L'ю', L'Й', L'Ц', L'У', L'К', L'Е', L'Н', L'Г', L'Ш', L'Щ', L'З', L'Х', L'Ъ', L'Ф', L'Ы', L'В', L'А', L'П', L'Р', L'О', L'Л', L'Д', L'Ж', L'Э', L'Я', L'Ч', L'С', L'М', L'И', L'Т', L'Ь', L'Б', L'Ю', L',', L'ё', L'Ё'};
-    wchar_t eng[] {'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'"[0], 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', '`', '~'};
+    wchar_t rus[] {L'\0', L'й', L'ц', L'у', L'к', L'е', L'н', L'г', L'ш', L'щ', L'з', L'х', L'ъ', L'ф', L'ы', L'в', L'а', L'п', L'р', L'о', L'л', L'д', L'ж', L'э', L'я', L'ч', L'с', L'м', L'и', L'т', L'ь', L'б', L'ю', L'Й', L'Ц', L'У', L'К', L'Е', L'Н', L'Г', L'Ш', L'Щ', L'З', L'Х', L'Ъ', L'Ф', L'Ы', L'В', L'А', L'П', L'Р', L'О', L'Л', L'Д', L'Ж', L'Э', L'Я', L'Ч', L'С', L'М', L'И', L'Т', L'Ь', L'Б', L'Ю', L',', L'ё', L'Ё'};
+    wchar_t eng[] {'\0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', '`', '~'};
+
+    assert(sizeof(rus) == sizeof(eng));
 
     wchar_t output[originalText.length()];
 
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    std::wstring wUtfString = converter.from_bytes(originalText);
-    wcscpy(output, wUtfString.c_str());
-
-    for (int i = 0, size = (int) wUtfString.length(); i < size; i++) {
-        wchar_t &at = wUtfString.at((unsigned long) i);
-        for (int k = 0, rusSize = sizeof(rus) / sizeof(wchar_t); k < rusSize; k++){
+    std::wstring utfString = ::to_wstring(originalText);
+    for (size_t i = 0, size = utfString.length(); i < size; ++i) {
+        wchar_t &at = utfString.at(i);
+        uint keysSize = sizeof(rus) / sizeof(wchar_t);
+        uint k = 0;
+        for (; k < keysSize; ++k) {
             if (at == eng[k]) {
                 output[i] = rus[k];
                 break;
@@ -209,8 +221,11 @@ std::shared_ptr<std::string> ClapTrap::flipQwerty(std::string &originalText) {
                 break;
             }
         }
+
+        if (k == keysSize) {
+            output[i] = at;
+        }
     }
 
-    const std::string &string = converter.to_bytes(output);
-    return std::shared_ptr<std::string>(new std::string(string));
+    return std::shared_ptr<std::string>(new std::string( ::to_utf8(output) ));
 }
