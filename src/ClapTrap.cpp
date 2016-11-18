@@ -49,12 +49,12 @@ ClapTrap::ClapTrap(char *token, SqlWrapper &sqlWrapper, std::string &logPrefix, 
 
                 reply = *flipQwerty(message->replyToMessage->text);
             }
+            replyToChat(CHAT_ID, reply, false, message->replyToMessage->messageId);
         }
         else
         {
-            reply = std::string("I need an original message in reply.");
+            replyToChat(CHAT_ID, "I need an original message in reply.");
         }
-        replyToChat(CHAT_ID, reply, false, message->replyToMessage->messageId);
     });
 
     getEvents().onCommand("querydb", [this](Message::Ptr message) {
