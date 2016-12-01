@@ -10,13 +10,17 @@ using namespace std;
 
 namespace ClapTp {
 
-    SqlWrapper::SqlWrapper(const char *pDatabaseName) : _pDbName(pDatabaseName) {
-        if (int rc = sqlite3_open_v2(_pDbName, &pSqliteDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
-            printf("Open database error: %d\n", rc);
-            closeSqlite();
-            throw "Cannot open SQLite.";
-        }
-        initSchema(pSqliteDB);
+    SqlWrapper::SqlWrapper(const char *pDatabaseName) :
+        _pDbName(pDatabaseName), dbClient(::sqlite3_open(1, _pDbName))
+    {
+//        if (int rc = sqlite3_open_v2(_pDbName, &pSqliteDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
+//            printf("Open database error: %d\n", rc);
+//            closeSqlite();
+//            throw "Cannot open SQLite.";
+//        }
+
+//        dbClient = ::sqlite3_open(1, _pDbName);
+        initSchema(dbClient.get());
     }
 
     SqlWrapper::~SqlWrapper() {
@@ -24,7 +28,7 @@ namespace ClapTp {
     }
 
     sqlite3* SqlWrapper::getSqliteInstance() {
-        return pSqliteDB;
+        return dbClient.get();
     }
 
     char* SqlWrapper::getLastSqliteError() {
@@ -65,8 +69,8 @@ namespace ClapTp {
     }
 
     void SqlWrapper::closeSqlite() {
-        sqlite3_close(pSqliteDB);
-        pSqliteDB = NULL;
+        sqlite3_close(dbClient.get());
+        //pSqliteDB = NULL;
     }
 
     void SqlWrapper::saveUser(TgBot::User::Ptr user) {
@@ -93,7 +97,7 @@ namespace ClapTp {
         sql << "ORDER BY st.id DESC; ";
 
         sqlite3_stmt *statement = NULL;
-        sqlite3_prepare_v2(pSqliteDB, sql.str().c_str(), -1, &statement, 0);
+        sqlite3_prepare_v2(dbClient.get(), sql.str().c_str(), -1, &statement, 0);
 
         int index = sqlite3_bind_parameter_index(statement, ":user_id");
         sqlite3_bind_int(statement, index, user->id);
@@ -136,7 +140,7 @@ namespace ClapTp {
         sql << "); ";
 
         sqlite3_stmt *statement = NULL;
-        sqlite3_prepare_v2(pSqliteDB, sql.str().c_str(), -1, &statement, 0);
+        sqlite3_prepare_v2(dbClient.get(), sql.str().c_str(), -1, &statement, 0);
 
         int index = sqlite3_bind_parameter_index(statement, ":user_id");
         sqlite3_bind_int(statement, index, user->id);
@@ -163,7 +167,7 @@ namespace ClapTp {
     void SqlWrapper::fetchUrls(char *buffer) {
         sqlite3_stmt *statement = NULL;
 
-        sqlite3_prepare_v2(pSqliteDB, "SELECT * FROM UrlCache;", -1, &statement, 0);
+        sqlite3_prepare_v2(dbClient.get(), "SELECT * FROM UrlCache;", -1, &statement, 0);
 
         // if there were parameters to bind, we'd do that here
 
@@ -189,7 +193,7 @@ namespace ClapTp {
     }
 
     void SqlWrapper::execSql(basic_string<char, char_traits<char>, allocator<char>> query, int (*callback)(void *, int, char **, char **)) {
-        if (int rc = sqlite3_exec(pSqliteDB, query.c_str(), callback, 0, &pSqliteErrMsg) != SQLITE_OK) {
+        if (int rc = sqlite3_exec(dbClient.get(), query.c_str(), callback, 0, &pSqliteErrMsg) != SQLITE_OK) {
             printf("SQL error[%d]: %s\n", rc, pSqliteErrMsg);
             sqlite3_free(pSqliteErrMsg);
             pSqliteErrMsg = NULL;

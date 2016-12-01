@@ -9,6 +9,7 @@ set(SOURCES
         src/LongPoll.cpp
         src/SqlWrapper.cpp
         src/ClapTrap.cpp
+        src/DBUtilities.cpp
         ${LIBRARIES}/sqlite/sqlite3.c)
 include_directories(
         ${SOURCES}
