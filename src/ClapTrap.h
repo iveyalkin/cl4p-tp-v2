@@ -31,7 +31,7 @@ namespace ClapTp {
         std::shared_ptr<std::string> flipQwerty(std::string &originalText);
 
     private:
-        SqlWrapper _dbInstance;
+        SqlWrapper &_dbInstance;
 
         std::string _logPrefix;
 

@@ -43,11 +43,10 @@ database_ptr sqlite3_open(int uid, const std::string &path)
     }
 
     database_ptr database(db, [=](sqlite3 *db){
-        DATABASE_LOG(uid, "DETACH DATABASE [" << DATABASE_MAIN << "];");
         if(db) ::sqlite3_close(db);
     });
 
-    DATABASE_LOG(uid, "OPEN DATABASE '" << path << "' AS [" << DATABASE_MAIN << "];");
+    DATABASE_LOG(uid, "OPEN DATABASE '" << path << "';");
 
     {
         std::stringstream sql;
@@ -116,7 +115,7 @@ database_ptr sqlite3_open(int uid, const std::string &path)
     sqlite3_create_function(database.get(), "IS_EMPTY",     1, SQLITE_UTF8, nullptr, userfunc::sqlite3_user_is_empty,     nullptr, nullptr);
     sqlite3_create_function(database.get(), "IS_NOT_EMPTY", 1, SQLITE_UTF8, nullptr, userfunc::sqlite3_user_is_not_empty, nullptr, nullptr);
 
-    return database;
+    return std::move(database);
 };
 
 //database_ptr sqlite3_open(int uid, FMDatabase *db)

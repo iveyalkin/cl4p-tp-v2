@@ -13,13 +13,6 @@ namespace ClapTp {
     SqlWrapper::SqlWrapper(const char *pDatabaseName) :
         _pDbName(pDatabaseName), dbClient(::sqlite3_open(1, _pDbName))
     {
-//        if (int rc = sqlite3_open_v2(_pDbName, &pSqliteDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL) != SQLITE_OK) {
-//            printf("Open database error: %d\n", rc);
-//            closeSqlite();
-//            throw "Cannot open SQLite.";
-//        }
-
-//        dbClient = ::sqlite3_open(1, _pDbName);
         initSchema(dbClient.get());
     }
 
@@ -70,7 +63,6 @@ namespace ClapTp {
 
     void SqlWrapper::closeSqlite() {
         sqlite3_close(dbClient.get());
-        //pSqliteDB = NULL;
     }
 
     void SqlWrapper::saveUser(TgBot::User::Ptr user) {
@@ -80,51 +72,32 @@ namespace ClapTp {
     void SqlWrapper::saveStash(TgBot::User::Ptr user, const std::string &stashText)
     {
         std::stringstream ss;
-        ss << "INSERT INTO [Stashes] ('user_id', 'text') VALUES ("
-           << user->id << ", '"
-           << stashText << "'); ";
+        ss << "INSERT INTO [Stashes] ('user_id', 'text') VALUES (:user_id, :text);";
 
-        execSql(ss.str().c_str());
+        ::sqlite3_execute(dbClient, 101, ss,
+                          std::make_pair("user_id", user->id),
+                          std::make_pair("text"   , stashText));
     }
 
     std::vector<std::string> SqlWrapper::loadStash(TgBot::User::Ptr user)
     {
         std::stringstream sql;
 
-        sql << "SELECT st.text ";
+        sql << "SELECT st.text as [text]";
         sql << "FROM [Stashes] st ";
         sql << "WHERE st.user_id = :user_id ";
         sql << "ORDER BY st.id DESC; ";
 
-        sqlite3_stmt *statement = NULL;
-        sqlite3_prepare_v2(dbClient.get(), sql.str().c_str(), -1, &statement, 0);
-
-        int index = sqlite3_bind_parameter_index(statement, ":user_id");
-        sqlite3_bind_int(statement, index, user->id);
-
-        std::vector<string> result;
-
-        int sqlStepResult;
-        while ((sqlStepResult = sqlite3_step(statement)) == SQLITE_ROW)
-        {
-            auto count = ::sqlite3_column_count(statement);
-            for(int column = 0; column < count; ++column) {
-                auto colname = ::sqlite3_column_name(statement, column);
-
-                if(strcmp(colname, "text") == 0)
-                {
-                    const char *text = (const char*)sqlite3_column_text(statement, column);
-                    result.push_back(std::string(text));
-                }
-            }
-        }
-        if (sqlStepResult != SQLITE_DONE) {
-            printf("Failed to read table. Error code: %d", sqlStepResult);
-        }
-
-        sqlite3_finalize(statement);
-
-        return result;
+        return ::sqlite3_fetch<std::vector<std::string> >(dbClient, 101, sql, [=](statement_ptr &statement) -> std::string
+                                                          {
+                                                                if (statement) {
+                                                                    return ::sqlite3_string(statement, "text");
+                                                                }
+                                                                else {
+                                                                    return std::string("");
+                                                                }
+                                                          },
+                                                          std::make_pair("user_id", user->id));
     }
 
     void SqlWrapper::removeNumStashMessages(TgBot::User::Ptr user, int count)
@@ -139,32 +112,51 @@ namespace ClapTp {
         sql <<      "LIMIT :count ";
         sql << "); ";
 
-        sqlite3_stmt *statement = NULL;
-        sqlite3_prepare_v2(dbClient.get(), sql.str().c_str(), -1, &statement, 0);
-
-        int index = sqlite3_bind_parameter_index(statement, ":user_id");
-        sqlite3_bind_int(statement, index, user->id);
-
-        index = sqlite3_bind_parameter_index(statement, ":count");
-        sqlite3_bind_int(statement, index, count);
-
-        int sqlStepResult = sqlite3_step(statement);
-        if (sqlStepResult != SQLITE_DONE)
-            printf("Failed to delete 'Stashes' records. Error code: %d", sqlStepResult);
+        ::sqlite3_execute(dbClient, 101, sql,
+                          std::make_pair("user_id", user->id),
+                          std::make_pair("count"  , count));
     }
 
     void SqlWrapper::saveUrl(int32_t& userId, std::string& url, std::string& description) {
-        char buffer[512];
-        sprintf(buffer,
-                "INSERT INTO 'UrlCache'('user_id', 'link', 'description') VALUES(%d, '%s', '%s');",
-                userId,
-                url.c_str(),
-                description.c_str()
-        );
-        execSql(buffer);
+        std::stringstream sql;
+
+        sql << "INSERT INTO 'UrlCache'('user_id', 'link', 'description') ";
+        sql << "VALUES(:user_id, :url, :description); ";
+
+        ::sqlite3_execute(dbClient, 101, sql,
+                          std::make_pair("user_id", userId),
+                          std::make_pair("url"    , url),
+                          std::make_pair("description", description));
     }
 
     void SqlWrapper::fetchUrls(char *buffer) {
+        bool feelingLucky = true;
+
+        if (feelingLucky)
+        {
+            std::stringstream sql;
+            sql << "SELECT * FROM [UrlCache]; ";
+            auto strings = ::sqlite3_fetch<std::vector<std::string> >(dbClient, 101, sql, [](statement_ptr &statement) -> std::string
+                                                                      {
+                                                                          if (!statement) return {};
+
+                                                                          std::stringstream ss;
+                                                                          ss << "User " << ::sqlite3_int(statement, "user_id");
+                                                                          ss << " [" << ::sqlite3_string(statement, "url") << "]: ";
+                                                                          ss << ::sqlite3_string(statement, "description");
+                                                                          return ss.str();
+                                                                      });
+            auto result = std::accumulate(strings.begin(), strings.end(), std::string(), [](std::string a, std::string b)
+                               {
+                                   if (a.empty())
+                                       return b;
+                                   else
+                                       return a + "\n" + b;
+                               });
+
+           strcpy(buffer, result.c_str());
+        }
+
         sqlite3_stmt *statement = NULL;
 
         sqlite3_prepare_v2(dbClient.get(), "SELECT * FROM UrlCache;", -1, &statement, 0);

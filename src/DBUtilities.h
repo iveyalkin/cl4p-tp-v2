@@ -7,7 +7,10 @@
 #include <boost/optional.hpp>
 #include <boost/filesystem.hpp>
 
-//#import "SQLiteDatabase.h"
+#ifdef DEBUG
+#include <map>
+#include <iostream>
+#endif // DEBUG
 
 
 #ifdef DEBUG

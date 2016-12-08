@@ -41,12 +41,10 @@ namespace ClapTp {
         void fetchUrls(char *buffer);
 
     private:
-//        sqlite3 *pSqliteDB = NULL;
-
         char *pSqliteErrMsg = NULL;
 
         const char *_pDbName = NULL;
-        const database_ptr &dbClient;
+        database_ptr dbClient;
 
     protected:
         void initSchema(sqlite3 *pDb);
