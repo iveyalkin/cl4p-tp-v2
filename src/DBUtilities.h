@@ -19,9 +19,6 @@
 #   define DATABASE_LOG(uid, data)
 #endif /*DEBUG*/
 
-//@class SQLiteClient;
-//@class FMDatabase;
-
 
 using database_ptr = std::unique_ptr<sqlite3, std::function<void(sqlite3*)>>;
 #ifdef DEBUG
@@ -170,7 +167,6 @@ inline time_t sqlite3_timestamp(statement_ptr &statement, const std::string &nam
 
 inline boost::filesystem::path sqlite3_path(statement_ptr &statement, const std::string &name, bool required = true) {
     auto path = boost::filesystem::path(::sqlite3_string(statement, name));
-//    auto path = boost::filesystem::to_path(::sqlite3_string(statement, name));
     if(required && !boost::filesystem::exists(path)) {
         return {};
     } else {
@@ -591,18 +587,6 @@ container sqlite3_fetch_optional_ids(database_ptr &database, int uid, const std:
     }, items...);
 };
 
-//template <typename ...fields>
-//inline NSArray* sqlite3_fetch_array(database_ptr &database, int uid, const std::stringstream &sql, std::function<NSObject*(statement_ptr&)> callback, const fields&... items) {
-//    NSMutableArray *objects = [NSMutableArray array];
-
-//    ::sqlite3_foreach(database, uid, sql, [=](statement_ptr &statement){
-//        auto object = callback(statement);
-//        if(!!object) [objects addObject:object];
-//    }, items...);
-
-//    return objects;
-//};
-
 template <typename ...fields>
 inline void sqlite3_upsert_id(database_ptr &database, int uid, const std::string &table, int_fast64_t item_id, const fields&... items) {
     std::stringstream sql;
@@ -617,45 +601,3 @@ inline void sqlite3_upsert_id(database_ptr &database, int uid, const std::string
         ::sqlite3_insert_id(database, uid, table, item_id, items...);
     }
 };
-
-
-//template <typename Result>
-//Result databaseFetch(database_ptr *client, const std::string &table, typename Result::UID objectUid, std::function<Result(statement_ptr&)> callback) {
-//    return ::databaseWithoutTransaction<Result>(client, [=](database_ptr &database, int uid)->Result{
-//        return ::sqlite3_fetch<Result>(database, uid, table, objectUid, callback);
-//    });
-//};
-
-//template <typename Result>
-//boost::optional<Result> databaseFetchOptional(SQLiteClient *client, const std::string &table, typename Result::UID objectUid, std::function<boost::optional<Result>(statement_ptr&)> callback) {
-//    return ::databaseWithoutTransaction<boost::optional<Result>>(client, [=](database_ptr &database, int uid)->boost::optional<Result>{
-//        return ::sqlite3_fetch_optional<Result>(database, uid, table, objectUid, callback);
-//    });
-//};
-//
-//template <typename Result, typename ...Fields>
-//Result databaseFetch(SQLiteClient *client, const std::stringstream &sql, std::function<Result(statement_ptr&)> callback, const Fields&... fields) {
-//    return ::databaseWithoutTransaction<Result>(client, [=, &sql](database_ptr &database, int uid)->Result{
-//        return ::sqlite3_fetch<Result>(database, uid, sql, callback, fields...);
-//    });
-//};
-//template <typename Result, typename ...Fields>
-//boost::optional<Result> databaseFetchOptional(SQLiteClient *client, const std::stringstream &sql, std::function<boost::optional<Result>(statement_ptr&)> callback, const Fields&... fields) {
-//    return ::databaseWithoutTransaction<boost::optional<Result>>(client, [=, &sql](database_ptr &database, int uid)->boost::optional<Result>{
-//        return ::sqlite3_fetch_optional<Result>(database, uid, sql, callback, fields...);
-//    });
-//};
-//
-//template <typename Container, typename ...Fields>
-//Container databaseFetch(SQLiteClient *client, const std::stringstream &sql, std::function<typename Container::value_type(statement_ptr&)> callback, const Fields&... fields) {
-//    return ::databaseWithoutTransaction<Container>(client, [=, &sql](database_ptr &database, int uid)->Container{
-//        return ::sqlite3_fetch<Container>(database, uid, sql, callback, fields...);
-//    });
-//};
-//
-//template <typename Container, typename ...Fields>
-//Container databaseFetchOptional(SQLiteClient *client, const std::stringstream &sql, std::function<boost::optional<typename Container::value_type>(statement_ptr&)> callback, const Fields&... fields) {
-//    return ::databaseWithoutTransaction<Container>(client, [=, &sql](database_ptr &database, int uid)->Container{
-//        return ::sqlite3_fetch_optional<Container>(database, uid, sql, callback, fields...);
-//    });
-//};

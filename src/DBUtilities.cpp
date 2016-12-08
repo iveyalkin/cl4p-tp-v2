@@ -1,6 +1,4 @@
 
-//#import "SQLiteError.h"
-
 #include "DBUtilities.h"
 #include <boost/algorithm/string/replace.hpp>
 
@@ -117,15 +115,6 @@ database_ptr sqlite3_open(int uid, const std::string &path)
 
     return std::move(database);
 };
-
-//database_ptr sqlite3_open(int uid, FMDatabase *db)
-//{
-//    database_ptr database(db.sqliteHandle, [](sqlite3 *db){
-//        // AV: do not close DB - it is opened by FMDatabase
-//    });
-
-//    return database;
-//};
 
 database_ptr sqlite3_open(int uid, sqlite3_context *context)
 {
@@ -399,7 +388,6 @@ bool sqlite3_execute(database_ptr &database, int uid, statement_ptr &statement, 
             //  it's ok
         } else {
             DATABASE_LOG(uid, "sqlite3_step(): #" << rc << ' ' << ::sqlite3_errmsg(database.get()));
-//            SQLiteErrorLog(database.get(), ::sqlite3_statement(statement));
 
             assert(false);
         }
@@ -426,7 +414,6 @@ void sqlite3_validate_database(const std::string &path)
     auto rc = ::sqlite3_open(path.c_str(), &db);
     if(SQLITE_OK != rc) {
         DATABASE_LOG(uid, "sqlite3_open(" << path << "): #" << rc);
-//        [[NSException exceptionWithName:@"Can't open database" reason:nil userInfo:nil] raise];
     }
 
     database_ptr database(db, [=](sqlite3 *db){
@@ -442,7 +429,6 @@ void sqlite3_validate_database(const std::string &path)
     rc = ::sqlite3_prepare_v2(database.get(), sql.c_str(), -1, &stmt, nullptr);
     if(SQLITE_OK != rc) {
         DATABASE_LOG(uid, "sqlite3_prepare_v2(): #" << rc << ' ' << ::sqlite3_errmsg(database.get()));
-//        [[NSException exceptionWithName:@"Can't check integrity" reason:nil userInfo:nil] raise];
     }
 
     using statement_ptr = std::unique_ptr<sqlite3_stmt, std::function<void(sqlite3_stmt*)>>;
@@ -454,7 +440,6 @@ void sqlite3_validate_database(const std::string &path)
 
     if (SQLITE_OK != rc && SQLITE_DONE != rc && SQLITE_ROW != rc) {
         DATABASE_LOG(uid, "sqlite3_step(): #" << rc << ' ' << ::sqlite3_errmsg(database.get()));
-//        [[NSException exceptionWithName:@"Database is malformed or corrupted" reason:nil userInfo:nil] raise];
     }
 };
 
